@@ -215,10 +215,11 @@ function RunMPCSetpointMultShoot(h, Nsim, InitParams, MPCParams, GuidanceParams,
 		args.x0  = [reshape(X0', NXall, 1); 
 					reshape(U0', NUall, 1)];
         
-        solv_tim = tic;
+        solver_start = tic;
 		sol = solver('x0', args.x0, 'lbx', args.lbx, 'ubx', args.ubx,...
 			'lbg', args.lbg, 'ubg', args.ubg,'p',args.p);
-        times_solver =[times_solver; toc];
+        solver_time = toc(solver_start)
+        times_solver =[times_solver; solver_time];
 
 
 		% Extract state and control trajectories from solution
@@ -249,14 +250,13 @@ function RunMPCSetpointMultShoot(h, Nsim, InitParams, MPCParams, GuidanceParams,
 		i_mpc
 		i_mpc = i_mpc + 1;
 
-	end
+    end
 
-	main_loop_time = toc(main_loop);
+    disp(['Data storage path: ' storepath])
 	ss_error = state_err
-	average_mpc_time = main_loop_time/(i_mpc+1)
+	main_loop_time = toc(main_loop)
 
 	i_end
-
 	% ==== Store data =====================================================
 	mpc_timestamps         = t(1:i_end)';
 	mpc_states             = x_out_mpc(:,1:i_end)';
@@ -266,7 +266,10 @@ function RunMPCSetpointMultShoot(h, Nsim, InitParams, MPCParams, GuidanceParams,
 	mpc_state_reference    = x_ref_all(:,1:i_end)'; %mpcstore_forces_moments     = u_FM_simout(1:i_end);
     mpc_times_solver       = times_solver(1:i_end,:)';
     
-    avg_solver_time = mpc_times_solver/i_end
+    avg_solver_time = mean(mpc_times_solver)
+    [max_solver_time, max_index] = max(mpc_times_solver);
+    max_solver_time_timestamp = max_index*h;
+    disp(['Max solver time: ' num2str(max_solver_time) ' At timestamp: ' num2str(max_solver_time_timestamp) ])
 
 	mkdir(storepath) % creates dir if it does not already exist
 

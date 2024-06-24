@@ -170,10 +170,10 @@ function plot_mpc_data (t_simout, x_simout, u_simout, xref_simout, figpath)
 
         % Determine limits
         % -2,2 to scale nicely with 10m apogee and the figsize
-        x_min = min([-2, min([min(x_u) min(u_u)])]);
-        x_max = max([2, max([max(x_u) max(u_u)])]);
-        y_min = min([-2, min([min(y_u) min(v_u)])]);
-        y_max = max([2, max([max(y_u) max(v_u)])]);
+        x_min = min([-2, min(x_u)]);
+        x_max = max([2, max(x_u)]);
+        y_min = min([-2, min(y_u)]);
+        y_max = max([2, max(y_u)]);
         z_min = 0;
         z_max = max(z_u);
         
@@ -215,7 +215,6 @@ function plot_mpc_data (t_simout, x_simout, u_simout, xref_simout, figpath)
         plot( t,y_u, 'color', col)
         ylim([y_min y_max])
         hold off,title('North [m]'),grid
-            ylim([z_min z_max])
 
         nexttile(8, [1,2]), plot(t,zr_u, ':', 'color', col),hold on
         plot( t,wr_u, ':', 'color', col_ref)

@@ -209,7 +209,7 @@ end
 Params.Init.Sim6.AllControls = Sim6_U;
 Sim6_DistForce = zeros(3, N+1);
 for i = 1:N+1
-        Sim6_DistForce(:, i) = [0.5 0 0]'; % Wind towards the North x axis
+        Sim6_DistForce(:, i) = [10 0 0]'; % Wind towards the North x axis
 end
 Params.Init.Sim6.AllDistForce = Sim6_DistForce;
 Params.Init.Sim6.AllDistTorque = zeros(3, N+1);
@@ -261,7 +261,8 @@ vx0 = 0; vy0 = 0; vz0 = 0;
 
 % Attitude Euler Angles (NED to Body) [rad]
 % Hopper Body frame is pitched 90 degs in NED. NED x,y,z => z,y,-x BODY
-roll0  = deg2rad(0.01); pitch0 = deg2rad(91); yaw0   = deg2rad(-0.01);
+roll0  = deg2rad(0.01); pitch0 = deg2rad(89); yaw0   = deg2rad(-0.01);
+%roll0  = deg2rad(0); pitch0 = deg2rad(9); yaw0   = deg2rad(0);
 
 % Angular Velocity [rad/s] in Body
 p0 = -0.001; q0 = 0.00001; r0 = 0.00001;
@@ -290,26 +291,26 @@ Params.Init.MPC = struct();
 Params.Init.MPC.h = 0.1;
 Params.Init.MPC.N = 200;
 
-% MPC_1 - Setpoint Multshoot Up and down again  ---------------------------
+% MPC_1 - Flight to apogee, hover  ---------------------------
 Params.Init.MPC1 = struct();
 Params.Init.MPC1.pos    = [0 0 d_prop]';
 Params.Init.MPC1.vel    = [0 0 0]';
 Params.Init.MPC1.quat   = euler2q(roll0, pitch0, roll0);
 Params.Init.MPC1.angvel = [0 0 0]';
 
-% MPC_2 - Setpoint Multshoot Up sideways and down again  ------------------
+% MPC_2 - Flight to apogee, land  ------------------
 Params.Init.MPC2 = struct();
 Params.Init.MPC2 = Params.Init.MPC1;
 
-% MPC_3 - Setpoint Multshoot Up to 1,1 and down to 2,2  -------------------
+% MPC_3 - Flight to apogee, land 1m diagonal  -------------------
 Params.Init.MPC3 = struct();
 Params.Init.MPC3 = Params.Init.MPC1;
 
-% MPC_3 - Setpoint Multshoot Up to 1,1 and down to 2,2  -------------------
-Params.Init.MPC3 = struct();
-Params.Init.MPC3 = Params.Init.MPC1;
+% MPC_4 - Flight diagonally to apogee, land diagonally  -------------------
+Params.Init.MPC4 = struct();
+Params.Init.MPC4 = Params.Init.MPC1;
 
-% MPC_5 - Setpoint Multshoot Only up  -------------------------------------
+% MPC_5 - MPC_1 Flight with disturbance  -------------------------------------
 Params.Init.MPC5 = struct();
 Params.Init.MPC5 = Params.Init.MPC1;
 
@@ -405,7 +406,7 @@ Params.MPC.ubdu = [max_linac_rate; max_linac_rate; max_prop_rate; max_prop_rate]
 
 
 
-% MPC_1 - Setpoint Multshoot Up and down again  ---------------------------
+% MPC_1 - Flight to apogee, hover  ---------------------------
 Params.MPC.MPC1 = struct();
 Params.MPC.MPC1.Np = 10;
 Params.MPC.MPC1.Q = Q;
@@ -421,73 +422,94 @@ Params.MPC.MPC1.ubx = [inf;inf; max_z+eps;
 Params.MPC.MPC1.lbu = [-max_linac_angle; -max_linac_angle; min_prop_speed; -max_prop_diff/2];
 Params.MPC.MPC1.ubu = [max_linac_angle; max_linac_angle; max_prop_speed; max_prop_diff/2];
              
-% MPC_2 - Setpoint Multshoot Up sideways and down again  ---------------------------
+% MPC_2 - Flight to apogee, land  ------------------
 Params.MPC.MPC2 = struct();
 Params.MPC.MPC2 = Params.MPC.MPC1; % same Q,R and bounds as MCP1
 
-% MPC_3 - Setpoint Multshoot Up to 1,1 and down to 2,2  ---------------------------
+% MPC_3 - Flight to apogee, land 1m diagonal  -------------------
 Params.MPC.MPC3 = struct();
 Params.MPC.MPC3 = Params.MPC.MPC1; % same Q,R and bounds as MCP1
 
-% MPC_5 - Setpoint Multshoot only up ---------------------------
+% MPC_4 - Flight diagonally to apogee, land diagonally  -------------------
+Params.MPC.MPC4 = struct();
+Params.MPC.MPC4 = Params.MPC.MPC1; % same Q,R and bounds as MCP1
+
+% MPC_5 - MPC_1 Flight with disturbance  -------------------------------------
 Params.MPC.MPC5 = struct();
 Params.MPC.MPC5 = Params.MPC.MPC1; % same Q,R and bounds as MCP1
 
 % ===== GUIDANCE MODULE (CURRENTLY SETPOINT ONLY) =========================
 Params.Guidance = struct();
 
+q0 = euler2q(0, deg2rad(90), 0);
 apogee_pos = [0 0 -10]'; % [m]
 landing_pos = [0 0 d_prop]'; % [m]
 
 Params.Guidance.apogee_setpoint = [  apogee_pos;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0]; 
 
 Params.Guidance.landing_setpoint = [  landing_pos;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0]; 
 
 
-% MPC_1 - Setpoint Multshoot Up and down again  ---------------------------
+% MPC_1 - Flight to apogee, hover  ---------------------------
 Params.Guidance.MPC1 = struct();
-Params.Guidance.MPC1.apogee_setpoint = [0; 0; -10;
+Params.Guidance.MPC1.apogee_setpoint = [apogee_pos;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0]; 
-Params.Guidance.MPC1.landing_setpoint = [0; 0; d_prop;
-                                        0; 0; 0;
-                                        1; 0; 0; 0;
-                                        0; 0; 0];                                              
+Params.Guidance.MPC1.landing_setpoint = Params.Guidance.MPC1.apogee_setpoint;                                           
                   
-% MPC_2 - Setpoint Multshoot Up to 1,1 and down again  --------------------
+% MPC_2 - Flight to apogee, land  ------------------
 Params.Guidance.MPC2 = struct();
-Params.Guidance.MPC2.apogee_setpoint = [1; 0; -10;
+Params.Guidance.MPC2.apogee_setpoint = [apogee_pos;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0]; 
-Params.Guidance.MPC2.landing_setpoint = [1; 0; d_prop;
+Params.Guidance.MPC2.landing_setpoint = [landing_pos;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0];                                              
 
-% MPC_3 - Setpoint Multshoot Up to 1,1 and down to 2,2  -------------------
+% MPC_3 - Flight to apogee, land 1m sideways  -------------------
 Params.Guidance.MPC3 = struct();
-Params.Guidance.MPC3.apogee_setpoint = [1; 0; -10;
+
+apogee_pos_3 = apogee_pos + [1 0 0]'; % [m]
+landing_pos_3 = landing_pos; % [m]
+Params.Guidance.MPC3.apogee_setpoint = [apogee_pos_3;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0]; 
-Params.Guidance.MPC3.landing_setpoint = [2; 0; d_prop;
+Params.Guidance.MPC3.landing_setpoint = [landing_pos_3;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0
                                         0; 0; 0];                                              
-% MPC_5 - Setpoint Multshoot only up --------------------------------------
-Params.Guidance.MPC1 = struct();
-Params.Guidance.MPC1.apogee_setpoint = [0; 0; -10;
+% MPC_4 - Flight sideqays to apogee, land sideways  -------------------
+Params.Guidance.MPC4 = struct();
+
+apogee_pos_4 = apogee_pos + [1 0 0]'; % [m]
+landing_pos_4 = landing_pos + [1 0 0]'; % [m]
+
+Params.Guidance.MPC4.apogee_setpoint = [apogee_pos_4;
                                         0; 0; 0;
-                                        1; 0; 0; 0;
+                                        q0;
                                         0; 0; 0]; 
-Params.Guidance.MPC1.landing_setpoint = Params.Guidance.MPC1.apogee_setpoint;                                            
+Params.Guidance.MPC4.landing_setpoint = [landing_pos_4;
+                                        0; 0; 0;
+                                        q0;
+                                        0; 0; 0];                                              
+
+
+% MPC_5 - MPC_1 Flight with disturbance  -------------------------------------
+Params.Guidance.MPC5 = struct();
+Params.Guidance.MPC5.apogee_setpoint = [apogee_pos;
+                                        0; 0; 0;
+                                        q0;
+                                        0; 0; 0]; 
+Params.Guidance.MPC5.landing_setpoint = Params.Guidance.MPC5.apogee_setpoint;                                            
          
 end

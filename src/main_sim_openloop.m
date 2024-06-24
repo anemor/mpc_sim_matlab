@@ -1,6 +1,6 @@
 clear all; close all; clc
 
-% ===== PARAMETERS ========================================================
+%% ===== PARAMETERS ========================================================
 Params = SetParameters();
 h = Params.Init.Sim.h;
 N = Params.Init.Sim.N;
@@ -23,22 +23,22 @@ end
 % SIM_2 - Thrust up, no gimbal --------------------------------------------
 DATA_NAME ='sim_2/';
 FIGPATH = [DATA_FOLDER DATA_NAME];
-RunOpenloopSim(h, N, Params.Init.Sim2, Params.Hopper, FIGPATH, PLOT);
+%RunOpenloopSim(h, N, Params.Init.Sim2, Params.Hopper, FIGPATH, PLOT);
 
 % SIM_3 - Thrust up with ROLL MOMENT  -------------------------------------
 DATA_NAME ='sim_3/';
 FIGPATH = [DATA_FOLDER DATA_NAME];
-RunOpenloopSim(h, N, Params.Init.Sim3, Params.Hopper, FIGPATH, PLOT);
+%RunOpenloopSim(h, N, Params.Init.Sim3, Params.Hopper, FIGPATH, PLOT);
 
 % SIM_4 - Thrust and PITCH +-1deg sin -------------------------------------
 DATA_NAME ='sim_4/';
 FIGPATH = [DATA_FOLDER DATA_NAME];
-RunOpenloopSim(h, N, Params.Init.Sim4, Params.Hopper, FIGPATH, PLOT);
+%RunOpenloopSim(h, N, Params.Init.Sim4, Params.Hopper, FIGPATH, PLOT);
 
 % SIM_5 - Thrust and YAW +-1deg sin ---------------------------------------
 DATA_NAME ='sim_5/';
 FIGPATH = [DATA_FOLDER DATA_NAME];
-RunOpenloopSim(h, N, Params.Init.Sim5, Params.Hopper, FIGPATH, PLOT);
+%RunOpenloopSim(h, N, Params.Init.Sim5, Params.Hopper, FIGPATH, PLOT);
 
 % SIM_6 - SIM_2 with disturbance ------------------------------------------
 DATA_NAME ='sim_6/';
